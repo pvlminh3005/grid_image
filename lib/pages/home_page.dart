@@ -2,11 +2,9 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import 'package:grid_image/providers/image_provider.dart';
 import 'package:grid_image/utils/utils.dart';
-import 'package:grid_image/widgets/image_item.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,6 +14,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late TransformationController controller;
+
+  File? imageFile;
+  File? defaultImage;
+
+  @override
+  void initState() {
+    controller = TransformationController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     ImageGridProvider provider = Provider.of<ImageGridProvider>(context);
@@ -23,6 +38,26 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Home Page'),
         actions: [
+          imageFile != null
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      imageFile = null;
+                    });
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                  ),
+                )
+              : const SizedBox.shrink(),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                imageFile = defaultImage;
+              });
+            },
+            icon: const Icon(CupertinoIcons.refresh_thick),
+          ),
           IconButton(
             icon: const Icon(CupertinoIcons.add),
             onPressed: () {
@@ -34,22 +69,26 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: StaggeredGridView.countBuilder(
-        staggeredTileBuilder: (index) => StaggeredTile.count(
-          2,
-          index.isEven ? 2 : 1,
-        ),
-        crossAxisCount: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        padding: const EdgeInsets.all(10),
-        itemCount: provider.listImages.length,
-        itemBuilder: (BuildContext context, int index) {
-          return ImageItem(
-            index: index,
-            file: provider.listImages[index],
-          );
-        },
+      floatingActionButton: imageFile != null
+          ? FloatingActionButton(
+              onPressed: () async {
+                File? cropImage = await Utils.cropImage(imageFile!.path);
+                if (cropImage == null) return;
+                setState(() {
+                  imageFile = cropImage;
+                });
+              },
+              child: const Icon(Icons.crop),
+            )
+          : null,
+      body: Container(
+        alignment: Alignment.center,
+        child: imageFile == null
+            ? const Text('Nothing')
+            : Image.file(
+                imageFile!,
+                fit: BoxFit.cover,
+              ),
       ),
     );
   }
@@ -65,9 +104,12 @@ class _HomePageState extends State<HomePage> {
         children: [
           InkWell(
             onTap: () async {
-              File? file = await Utils.pickImage();
-              if (file == null) return;
-              provider.addNewImage(file);
+              File file = await Utils.pickImage();
+              // provider.addNewImage(file);
+              setState(() {
+                imageFile = file;
+                defaultImage = file;
+              });
             },
             child: Container(
               margin: const EdgeInsets.symmetric(vertical: 5),
@@ -90,8 +132,11 @@ class _HomePageState extends State<HomePage> {
           ),
           InkWell(
             onTap: () async {
-              File? file = await Utils.pickImage(isGallery: false);
-              if (file == null) return;
+              File file = await Utils.pickImage(isGallery: false);
+              setState(() {
+                imageFile = file;
+                defaultImage = file;
+              });
             },
             child: Container(
               margin: const EdgeInsets.symmetric(vertical: 5),

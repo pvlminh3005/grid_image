@@ -10,7 +10,7 @@ class ImageItem extends StatelessWidget {
   final File? file;
 
   const ImageItem({
-    this.index,
+    this.index = 0,
     this.file,
     Key? key,
   }) : super(key: key);
