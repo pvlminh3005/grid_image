@@ -1,11 +1,12 @@
 import 'dart:io';
-
+import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 import 'package:grid_image/providers/image_provider.dart';
 import 'package:grid_image/utils/utils.dart';
 import 'package:grid_image/widgets/image_item.dart';
-import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -33,12 +34,14 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+      body: StaggeredGridView.countBuilder(
+        staggeredTileBuilder: (index) => StaggeredTile.count(
+          2,
+          index.isEven ? 2 : 1,
         ),
+        crossAxisCount: 4,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
         padding: const EdgeInsets.all(10),
         itemCount: provider.listImages.length,
         itemBuilder: (BuildContext context, int index) {

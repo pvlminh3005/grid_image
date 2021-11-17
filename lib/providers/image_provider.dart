@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class ImageGridProvider with ChangeNotifier {
-  late List<File> _listImages;
+  List<File> _listImages = [];
   List<File> get listImages => _listImages;
 
   Future<void> addNewImage(File? image) async {
