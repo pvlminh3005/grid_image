@@ -1,10 +1,13 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:grid_image/pages/camera_page.dart';
 import 'package:provider/provider.dart';
 
-import 'pages/home_page.dart';
 import 'providers/image_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
   runApp(const MyApp());
 }
 
@@ -24,7 +27,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         debugShowCheckedModeBanner: false,
-        home: const HomePage(),
+        home: CameraPage(cameras: cameras),
       ),
     );
   }
