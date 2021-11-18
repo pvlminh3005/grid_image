@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:extended_image/extended_image.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GlobalKey<ExtendedImageEditorState> editorKey =
+      GlobalKey<ExtendedImageEditorState>();
   late TransformationController controller;
 
   File? imageFile;
@@ -51,14 +54,6 @@ class _HomePageState extends State<HomePage> {
                 )
               : const SizedBox.shrink(),
           IconButton(
-            onPressed: () {
-              setState(() {
-                imageFile = defaultImage;
-              });
-            },
-            icon: const Icon(CupertinoIcons.refresh_thick),
-          ),
-          IconButton(
             icon: const Icon(CupertinoIcons.add),
             onPressed: () {
               showModalBottomSheet(
@@ -69,26 +64,71 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      floatingActionButton: imageFile != null
-          ? FloatingActionButton(
-              onPressed: () async {
-                File? cropImage = await Utils.cropImage(imageFile!.path);
-                if (cropImage == null) return;
-                setState(() {
-                  imageFile = cropImage;
-                });
-              },
-              child: const Icon(Icons.crop),
-            )
-          : null,
-      body: Container(
-        alignment: Alignment.center,
-        child: imageFile == null
-            ? const Text('Nothing')
-            : Image.file(
-                imageFile!,
-                fit: BoxFit.cover,
-              ),
+      body: Column(
+        children: [
+          Expanded(
+            child: imageFile != null
+                ? ExtendedImage.file(
+                    imageFile!,
+                    extendedImageEditorKey: editorKey,
+                    fit: BoxFit.contain,
+                    mode: ExtendedImageMode.editor,
+                    initEditorConfigHandler: (state) {
+                      return EditorConfig(
+                        maxScale: 8.0,
+                        hitTestSize: 20.0,
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Text('Nothing Image!'),
+                  ),
+          ),
+          imageFile != null
+              ? Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: Colors.blue,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      CustomIconButton(
+                        icon: Icons.crop,
+                        title: 'Crop',
+                        onTap: () {},
+                      ),
+                      CustomIconButton(
+                        icon: Icons.rotate_left,
+                        title: 'Rotate left',
+                        onTap: () {
+                          editorKey.currentState!.rotate(right: false);
+                        },
+                      ),
+                      CustomIconButton(
+                        icon: Icons.rotate_right,
+                        title: 'Rotate right',
+                        onTap: () {
+                          editorKey.currentState!.rotate(right: true);
+                        },
+                      ),
+                      CustomIconButton(
+                        icon: Icons.flip,
+                        title: 'Flip',
+                        onTap: () {
+                          editorKey.currentState!.flip();
+                        },
+                      ),
+                      CustomIconButton(
+                        icon: Icons.restore,
+                        title: 'Reset',
+                        onTap: () {
+                          editorKey.currentState!.reset();
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ],
       ),
     );
   }
@@ -155,6 +195,41 @@ class _HomePageState extends State<HomePage> {
                   Text('Choose from Camera'),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomIconButton extends StatelessWidget {
+  final String title;
+  final IconData? icon;
+  final Function()? onTap;
+
+  const CustomIconButton({
+    this.title = '',
+    this.icon,
+    this.onTap,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 27,
+            color: Colors.white,
+          ),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
             ),
           ),
         ],

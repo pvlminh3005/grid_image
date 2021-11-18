@@ -36,4 +36,6 @@ class Utils {
     );
     return cropFile;
   }
+
+  static saveImage() async {}
 }
